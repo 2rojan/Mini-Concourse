@@ -1,0 +1,48 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: concourse-web
+  namespace: concourse
+  labels:
+    service: concourse-web
+  generation: 1
+spec:
+  strategy:
+    type: RollingUpdate
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        service: concourse-web
+    spec:
+      containers:
+      - name: concourse-web
+        command:
+        - concourse
+        - web
+        env:
+        - name: CONCOURSE_BASIC_AUTH_USERNAME
+          value: concourse
+        - name: CONCOURSE_BASIC_AUTH_PASSWORD
+          value: changeme
+        - name: CONCOURSE_EXTERNAL_URL
+          value: "http://concourse-web.concourse.svc.cluster.local:8080"
+        - name: CONCOURSE_POSTGRES_DATA_SOURCE
+          value: postgres://concourse:changeme@concourse-db.concourse.svc.cluster.local:5432/concourse?sslmode=disable
+        image: concourse/concourse
+        name: concourse-web
+        ports:
+        - containerPort: 8080
+          name: http
+        - containerPort: 2222
+          name: tsa
+        volumeMounts:
+        - name: concourse-keys
+          mountPath: /concourse-keys
+          readOnly: true
+      restartPolicy: Always
+      volumes:
+      - name: concourse-keys
+        secret:
+          secretName: concourse-web-secrets
+          defaultMode: 0400

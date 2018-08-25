@@ -1,0 +1,37 @@
+apiVersion: v1
+kind: ReplicationController
+metadata:
+  labels:
+    service: concourse-worker
+  name: concourse-worker
+  namespace: concourse
+spec:
+  replicas: 1
+  selector:
+    service: concourse-worker
+  template:
+    metadata:
+      labels:
+        service: concourse-worker
+    spec:
+      containers:
+      - command:
+        - concourse
+        - worker
+        env:
+        - name: CONCOURSE_TSA_HOST
+          value: concourse-web.concourse.svc.cluster.local
+        image: concourse/concourse
+        name: concourse-worker
+        volumeMounts:
+        - name: concourse-keys
+          mountPath: /concourse-keys
+          readOnly: true
+        securityContext:
+          privileged: true
+      restartPolicy: Always
+      volumes:
+      - name: concourse-keys
+        secret:
+          secretName: concourse-worker-secrets
+          defaultMode: 0400

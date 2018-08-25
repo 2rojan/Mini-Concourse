@@ -1,0 +1,30 @@
+apiVersion: extensions/v1beta1
+kind: Deployment
+metadata:
+  name: concourse-db
+  namespace: concourse
+  labels:
+    service: concourse-db
+  generation: 1
+spec:
+  strategy:
+    type: RollingUpdate
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        service: concourse-db
+    spec:
+      containers:
+      - env:
+        - name: PGDATA
+          value: /database
+        - name: POSTGRES_DB
+          value: concourse
+        - name: POSTGRES_PASSWORD
+          value: changeme
+        - name: POSTGRES_USER
+          value: concourse
+        image: postgres:9.5
+        name: concourse-db
+      restartPolicy: Always
